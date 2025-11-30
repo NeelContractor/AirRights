@@ -1,0 +1,786 @@
+{
+  "address": "3zMwSoPMzhJtE4fsNdZ4qg7NfvEmJzswBRC3TzJbjRR8",
+  "metadata": {
+    "name": "air",
+    "version": "0.1.0",
+    "spec": "0.1.0",
+    "description": "Created with Anchor"
+  },
+  "instructions": [
+    {
+      "name": "cancel_listing",
+      "discriminator": [
+        41,
+        183,
+        50,
+        232,
+        230,
+        233,
+        157,
+        70
+      ],
+      "accounts": [
+        {
+          "name": "listing",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  108,
+                  105,
+                  115,
+                  116,
+                  105,
+                  110,
+                  103
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "listing.listing_id",
+                "account": "Listing"
+              }
+            ]
+          }
+        },
+        {
+          "name": "location_index",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  108,
+                  111,
+                  99,
+                  97,
+                  116,
+                  105,
+                  111,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "listing.location.city",
+                "account": "Listing"
+              },
+              {
+                "kind": "account",
+                "path": "listing.location.country",
+                "account": "Listing"
+              }
+            ]
+          }
+        },
+        {
+          "name": "owner",
+          "signer": true
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "create_listing",
+      "docs": [
+        "List air rights for sale or lease"
+      ],
+      "discriminator": [
+        18,
+        168,
+        45,
+        24,
+        191,
+        31,
+        117,
+        54
+      ],
+      "accounts": [
+        {
+          "name": "listing",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  108,
+                  105,
+                  115,
+                  116,
+                  105,
+                  110,
+                  103
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "registry.total_listings",
+                "account": "Registry"
+              }
+            ]
+          }
+        },
+        {
+          "name": "registry",
+          "writable": true
+        },
+        {
+          "name": "location_index",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  108,
+                  111,
+                  99,
+                  97,
+                  116,
+                  105,
+                  111,
+                  110
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "city"
+              },
+              {
+                "kind": "arg",
+                "path": "country"
+              }
+            ]
+          }
+        },
+        {
+          "name": "owner",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "latitude",
+          "type": "i32"
+        },
+        {
+          "name": "longitude",
+          "type": "i32"
+        },
+        {
+          "name": "height_from",
+          "type": "u16"
+        },
+        {
+          "name": "height_to",
+          "type": "u16"
+        },
+        {
+          "name": "area_sqm",
+          "type": "u32"
+        },
+        {
+          "name": "price",
+          "type": "u64"
+        },
+        {
+          "name": "listing_type",
+          "type": {
+            "defined": {
+              "name": "ListingType"
+            }
+          }
+        },
+        {
+          "name": "duration_days",
+          "type": "u32"
+        },
+        {
+          "name": "city",
+          "type": "string"
+        },
+        {
+          "name": "country",
+          "type": "string"
+        },
+        {
+          "name": "metadata_uri",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "initialize_registry",
+      "discriminator": [
+        189,
+        181,
+        20,
+        17,
+        174,
+        57,
+        249,
+        59
+      ],
+      "accounts": [
+        {
+          "name": "registry",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  114,
+                  101,
+                  103,
+                  105,
+                  115,
+                  116,
+                  114,
+                  121
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "authority",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "lease_air_rights",
+      "discriminator": [
+        158,
+        68,
+        224,
+        226,
+        174,
+        211,
+        76,
+        1
+      ],
+      "accounts": [
+        {
+          "name": "listing",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  108,
+                  105,
+                  115,
+                  116,
+                  105,
+                  110,
+                  103
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "listing.listing_id",
+                "account": "Listing"
+              }
+            ]
+          }
+        },
+        {
+          "name": "registry"
+        },
+        {
+          "name": "lease_record",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  108,
+                  101,
+                  97,
+                  115,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "listing.listing_id",
+                "account": "Listing"
+              },
+              {
+                "kind": "account",
+                "path": "lessee"
+              }
+            ]
+          }
+        },
+        {
+          "name": "lessee",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "lessor",
+          "writable": true
+        },
+        {
+          "name": "platform_treasury",
+          "writable": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "purchase_air_rights",
+      "discriminator": [
+        170,
+        240,
+        7,
+        84,
+        63,
+        221,
+        73,
+        222
+      ],
+      "accounts": [
+        {
+          "name": "listing",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  108,
+                  105,
+                  115,
+                  116,
+                  105,
+                  110,
+                  103
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "listing.listing_id",
+                "account": "Listing"
+              }
+            ]
+          }
+        },
+        {
+          "name": "registry"
+        },
+        {
+          "name": "buyer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "seller",
+          "writable": true
+        },
+        {
+          "name": "platform_treasury",
+          "writable": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "update_price",
+      "discriminator": [
+        61,
+        34,
+        117,
+        155,
+        75,
+        34,
+        123,
+        208
+      ],
+      "accounts": [
+        {
+          "name": "listing",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  108,
+                  105,
+                  115,
+                  116,
+                  105,
+                  110,
+                  103
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "listing.listing_id",
+                "account": "Listing"
+              }
+            ]
+          }
+        },
+        {
+          "name": "owner",
+          "signer": true
+        }
+      ],
+      "args": [
+        {
+          "name": "new_price",
+          "type": "u64"
+        }
+      ]
+    }
+  ],
+  "accounts": [
+    {
+      "name": "LeaseRecord",
+      "discriminator": [
+        83,
+        102,
+        121,
+        177,
+        32,
+        140,
+        206,
+        150
+      ]
+    },
+    {
+      "name": "Listing",
+      "discriminator": [
+        218,
+        32,
+        50,
+        73,
+        43,
+        134,
+        26,
+        58
+      ]
+    },
+    {
+      "name": "LocationIndex",
+      "discriminator": [
+        64,
+        3,
+        20,
+        203,
+        204,
+        168,
+        46,
+        11
+      ]
+    },
+    {
+      "name": "Registry",
+      "discriminator": [
+        47,
+        174,
+        110,
+        246,
+        184,
+        182,
+        252,
+        218
+      ]
+    }
+  ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "MetadataUriTooLong",
+      "msg": "Metadata URI exceeds maximum length"
+    },
+    {
+      "code": 6001,
+      "name": "CityNameTooLong",
+      "msg": "City name exceeds maximum length"
+    },
+    {
+      "code": 6002,
+      "name": "CountryCodeInvalid",
+      "msg": "Country code must be 2-3 characters"
+    },
+    {
+      "code": 6003,
+      "name": "InvalidHeightRange",
+      "msg": "Invalid height range"
+    },
+    {
+      "code": 6004,
+      "name": "InvalidPrice",
+      "msg": "Invalid price"
+    },
+    {
+      "code": 6005,
+      "name": "ListingNotActive",
+      "msg": "Listing is not active"
+    },
+    {
+      "code": 6006,
+      "name": "NotForSale",
+      "msg": "Listing is not for sale"
+    },
+    {
+      "code": 6007,
+      "name": "NotForLease",
+      "msg": "Listing is not for lease"
+    },
+    {
+      "code": 6008,
+      "name": "Unauthorized",
+      "msg": "Unauthorized"
+    }
+  ],
+  "types": [
+    {
+      "name": "LeaseRecord",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "listing_id",
+            "type": "u64"
+          },
+          {
+            "name": "lessor",
+            "type": "pubkey"
+          },
+          {
+            "name": "lessee",
+            "type": "pubkey"
+          },
+          {
+            "name": "start_date",
+            "type": "i64"
+          },
+          {
+            "name": "end_date",
+            "type": "i64"
+          },
+          {
+            "name": "amount_paid",
+            "type": "u64"
+          },
+          {
+            "name": "is_active",
+            "type": "bool"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Listing",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "listing_id",
+            "type": "u64"
+          },
+          {
+            "name": "location",
+            "type": {
+              "defined": {
+                "name": "Location"
+              }
+            }
+          },
+          {
+            "name": "height_from",
+            "type": "u16"
+          },
+          {
+            "name": "height_to",
+            "type": "u16"
+          },
+          {
+            "name": "area_sqm",
+            "type": "u32"
+          },
+          {
+            "name": "price",
+            "type": "u64"
+          },
+          {
+            "name": "listing_type",
+            "type": {
+              "defined": {
+                "name": "ListingType"
+              }
+            }
+          },
+          {
+            "name": "status",
+            "type": {
+              "defined": {
+                "name": "ListingStatus"
+              }
+            }
+          },
+          {
+            "name": "duration_days",
+            "type": "u32"
+          },
+          {
+            "name": "created_at",
+            "type": "i64"
+          },
+          {
+            "name": "metadata_uri",
+            "type": "string"
+          },
+          {
+            "name": "buyer",
+            "type": {
+              "option": "pubkey"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "ListingStatus",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Active"
+          },
+          {
+            "name": "Sold"
+          },
+          {
+            "name": "Leased"
+          },
+          {
+            "name": "Cancelled"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ListingType",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Sale"
+          },
+          {
+            "name": "Lease"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Location",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "latitude",
+            "type": "i32"
+          },
+          {
+            "name": "longitude",
+            "type": "i32"
+          },
+          {
+            "name": "grid_x",
+            "type": "u32"
+          },
+          {
+            "name": "grid_y",
+            "type": "u32"
+          },
+          {
+            "name": "city",
+            "type": "string"
+          },
+          {
+            "name": "country",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "name": "LocationIndex",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "city",
+            "type": "string"
+          },
+          {
+            "name": "country",
+            "type": "string"
+          },
+          {
+            "name": "listing_count",
+            "type": "u32"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Registry",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "authority",
+            "type": "pubkey"
+          },
+          {
+            "name": "total_listings",
+            "type": "u64"
+          },
+          {
+            "name": "platform_fee_bps",
+            "type": "u16"
+          }
+        ]
+      }
+    }
+  ]
+}
