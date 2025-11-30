@@ -6,6 +6,11 @@ import { WalletButton } from "../solana/solana-provider"
 import { useState, useMemo } from "react"
 import { PublicKey, LAMPORTS_PER_SOL } from "@solana/web3.js"
 import BN from "bn.js"
+import { GLOBAL } from "@/utils/global"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select"
+import { Button } from "../ui/button"
+import { Input } from "../ui/input"
+import { Label } from "../ui/label"
 
 const ADMIN_PUBKEY = new PublicKey("FAbPnoAVhTmpxk71RzoC7L31nJa62qPq14rZTAE7Z3cw");
 
@@ -32,7 +37,15 @@ export default function AirTrade() {
   // Search state
   const [searchCity, setSearchCity] = useState("Mumbai")
   const [searchCountry, setSearchCountry] = useState("IN")
-  const [activeTab, setActiveTab] = useState<"browse" | "create" | "my-listings">("browse")
+  const [activeTab, setActiveTab] = useState<"browse" | "create" | "my-listings" | "my-rights">("browse")
+  const [countryCode, setCountryCode] = useState<string>("IN")
+  const [city, setCity] = useState<string>("Mumbai")
+  const [createCountryCode, setCreateCountryCode] = useState<string>("IN")
+  const [createCity, setCreateCity] = useState<string>("Mumbai")
+  
+  // Update price state - track which listing is being updated
+  const [updatingListingId, setUpdatingListingId] = useState<string | null>(null)
+  const [updatedPrices, setUpdatedPrices] = useState<{[key: string]: string}>({})
 
   // Create listing form state
   const [formData, setFormData] = useState({
@@ -65,13 +78,25 @@ export default function AirTrade() {
     return listingAccounts.data.filter((l) => l.account.owner.equals(publicKey))
   }, [listingAccounts.data, publicKey])
 
+  const myPurchasedRights = useMemo(() => {
+    if (!publicKey || !listingAccounts.data) return []
+    return listingAccounts.data.filter((l) => {
+      const statusKey = Object.keys(l.account.status)[0]
+      return statusKey === "sold" && l.account.buyer && l.account.buyer.equals(publicKey)
+    })
+  }, [listingAccounts.data, publicKey])
+
+  const myLeasedRights = useMemo(() => {
+    if (!publicKey || !leaseRecordAccounts.data) return []
+    return leaseRecordAccounts.data.filter((l) => l.account.lessee.equals(publicKey))
+  }, [leaseRecordAccounts.data, publicKey])
+
   const handleInitializeRegistry = async () => {
     if (!publicKey) return
     await initializeRegistryHandler.mutateAsync({ payerPubkey: publicKey })
   }
 
-  const handleCreateListing = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const handleCreateListing = async () => {
     if (!publicKey) return
 
     const coords = coordinatesToOnChain(formData.latitude, formData.longitude)
@@ -95,6 +120,34 @@ export default function AirTrade() {
     setActiveTab("browse")
   }
 
+  const handleUpdatePrice = async (listing: any) => {
+    if (!publicKey) return
+    
+    const listingId = listing.publicKey.toString()
+    const newPriceSOL = updatedPrices[listingId]
+    
+    if (!newPriceSOL || parseFloat(newPriceSOL) <= 0) {
+      alert("Please enter a valid price")
+      return
+    }
+
+    const newPriceLamports = new BN(parseFloat(newPriceSOL) * LAMPORTS_PER_SOL)
+
+    await updatePriceHandler.mutateAsync({
+      listingPubkey: listing.publicKey,
+      ownerPubkey: publicKey,
+      newPrice: newPriceLamports,
+    })
+
+    // Clear the update state
+    setUpdatingListingId(null)
+    setUpdatedPrices(prev => {
+      const newPrices = {...prev}
+      delete newPrices[listingId]
+      return newPrices
+    })
+  }
+
   const handlePurchase = async (listing: any) => {
     if (!publicKey) return
 
@@ -102,7 +155,7 @@ export default function AirTrade() {
       listingPubkey: listing.publicKey,
       buyerPubkey: publicKey,
       sellerPubkey: listing.account.owner,
-      platformTreasuryPubkey: platformTreasury,
+      platformTreasuryPubkey: ADMIN_PUBKEY,
     })
   }
 
@@ -113,7 +166,7 @@ export default function AirTrade() {
       listingPubkey: listing.publicKey,
       lesseePubkey: publicKey,
       lessorPubkey: listing.account.owner,
-      platformTreasuryPubkey: platformTreasury,
+      platformTreasuryPubkey: ADMIN_PUBKEY,
       listingId: listing.account.listingId,
     })
   }
@@ -128,6 +181,18 @@ export default function AirTrade() {
       country: listing.account.location.country,
     })
   }
+
+  const countries = useMemo(
+    () =>
+      Object.entries(GLOBAL).map(([code, data]) => ({
+        code,
+        name: data.country,
+      })),
+    []
+  )
+
+  const cities = countryCode ? GLOBAL[countryCode]?.cities ?? [] : []
+  const createCities = createCountryCode ? GLOBAL[createCountryCode]?.cities ?? [] : []
 
   const getStatusBadge = (status: any) => {
     const statusKey = Object.keys(status)[0]
@@ -226,6 +291,16 @@ export default function AirTrade() {
             >
               My Listings ({myListings.length})
             </button>
+            <button
+              onClick={() => setActiveTab("my-rights")}
+              className={`pb-4 px-1 border-b-2 font-medium text-sm ${
+                activeTab === "my-rights"
+                  ? "border-blue-500 text-blue-600"
+                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+              }`}
+            >
+              My Rights ({myPurchasedRights.length + myLeasedRights.length})
+            </button>
           </nav>
         </div>
 
@@ -236,21 +311,47 @@ export default function AirTrade() {
             <div className="bg-white rounded-lg shadow p-6 mb-6">
               <h2 className="text-xl font-semibold mb-4">Search by Location</h2>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <input
-                  type="text"
-                  placeholder="City (e.g., Mumbai)"
-                  value={searchCity}
-                  onChange={(e) => setSearchCity(e.target.value)}
-                  className="border border-gray-300 rounded px-4 py-2"
-                />
-                <input
-                  type="text"
-                  placeholder="Country Code (e.g., IN)"
-                  value={searchCountry}
-                  onChange={(e) => setSearchCountry(e.target.value.toUpperCase())}
-                  className="border border-gray-300 rounded px-4 py-2"
-                  maxLength={3}
-                />
+                <Select
+                  value={countryCode}
+                  onValueChange={(value) => {
+                    setCountryCode(value)
+                    setSearchCountry(value)
+                    setCity("")
+                    setSearchCity("")
+                  }}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select country" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {countries.map(({ code, name }) => (
+                      <SelectItem key={code} value={code}>
+                        {name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                <Select
+                  value={city}
+                  onValueChange={(value) => {
+                    setCity(value)
+                    setSearchCity(value)
+                  }}
+                  disabled={!countryCode}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select city" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {cities.map((cityName) => (
+                      <SelectItem key={cityName} value={cityName}>
+                        {cityName}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
                 <div className="flex items-center">
                   {locationIndex && (
                     <span className="text-gray-600">
@@ -347,28 +448,51 @@ export default function AirTrade() {
         {activeTab === "create" && (
           <div className="bg-white rounded-lg shadow p-6 max-w-2xl mx-auto">
             <h2 className="text-2xl font-semibold mb-6">Create New Listing</h2>
-            <form onSubmit={handleCreateListing} className="space-y-4">
+            <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">City</label>
-                  <input
-                    type="text"
-                    value={formData.city}
-                    onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                    className="w-full border border-gray-300 rounded px-4 py-2"
-                    required
-                  />
+                  <Label className="block text-sm font-medium text-gray-700 mb-1">Country</Label>
+                  <Select
+                    value={createCountryCode}
+                    onValueChange={(value) => {
+                      setCreateCountryCode(value)
+                      setFormData({ ...formData, country: value, city: "" })
+                      setCreateCity("")
+                    }}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select country" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {countries.map(({ code, name }) => (
+                        <SelectItem key={code} value={code}>
+                          {name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Country Code</label>
-                  <input
-                    type="text"
-                    value={formData.country}
-                    onChange={(e) => setFormData({ ...formData, country: e.target.value.toUpperCase() })}
-                    className="w-full border border-gray-300 rounded px-4 py-2"
-                    maxLength={3}
-                    required
-                  />
+                  <Label className="block text-sm font-medium text-gray-700 mb-1">City</Label>
+                  <Select
+                    value={createCity}
+                    onValueChange={(value) => {
+                      setCreateCity(value)
+                      setFormData({ ...formData, city: value })
+                    }}
+                    disabled={!createCountryCode}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select city" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {createCities.map((cityName) => (
+                        <SelectItem key={cityName} value={cityName}>
+                          {cityName}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
 
@@ -481,13 +605,13 @@ export default function AirTrade() {
               </div>
 
               <button
-                type="submit"
+                onClick={handleCreateListing}
                 disabled={!publicKey || createListingHandler.isPending}
                 className="w-full bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 disabled:opacity-50 font-semibold"
               >
                 {createListingHandler.isPending ? "Creating..." : "Create Listing"}
               </button>
-            </form>
+            </div>
           </div>
         )}
 
@@ -512,9 +636,11 @@ export default function AirTrade() {
                     listing.account.location.longitude
                   )
                   const isActive = Object.keys(listing.account.status)[0] === "active"
+                  const listingId = listing.publicKey.toString()
+                  const isUpdating = updatingListingId === listingId
 
                   return (
-                    <div key={listing.publicKey.toString()} className="bg-white rounded-lg shadow p-6">
+                    <div key={listingId} className="bg-white rounded-lg shadow p-6">
                       <div className="flex justify-between items-start mb-4">
                         {getTypeBadge(listing.account.listingType)}
                         {getStatusBadge(listing.account.status)}
@@ -530,12 +656,66 @@ export default function AirTrade() {
                         <p>📐 {listing.account.areaSqm} m²</p>
                       </div>
 
-                      <div className="border-t pt-4">
-                        <p className="text-2xl font-bold text-blue-600 mb-4">
+                      <div className="border-t pt-4 space-y-3">
+                        <p className="text-2xl font-bold text-blue-600">
                           {(listing.account.price.toNumber() / LAMPORTS_PER_SOL).toFixed(2)} SOL
                         </p>
 
                         {isActive && (
+                          <div className="space-y-2">
+                            {isUpdating ? (
+                              <div className="space-y-2">
+                                <Label htmlFor={`price-${listingId}`}>New Price (SOL)</Label>
+                                <Input 
+                                  id={`price-${listingId}`}
+                                  type="number"
+                                  step="0.01"
+                                  placeholder="Enter new price"
+                                  value={updatedPrices[listingId] || ""}
+                                  onChange={(e) => {
+                                    setUpdatedPrices(prev => ({
+                                      ...prev,
+                                      [listingId]: e.target.value
+                                    }))
+                                  }}
+                                />
+                                <div className="flex gap-2">
+                                  <Button 
+                                    className="flex-1"
+                                    onClick={() => handleUpdatePrice(listing)}
+                                    disabled={updatePriceHandler.isPending}
+                                  >
+                                    {updatePriceHandler.isPending ? "Updating..." : "Confirm"}
+                                  </Button>
+                                  <Button 
+                                    variant="outline"
+                                    className="flex-1"
+                                    onClick={() => {
+                                      setUpdatingListingId(null)
+                                      setUpdatedPrices(prev => {
+                                        const newPrices = {...prev}
+                                        delete newPrices[listingId]
+                                        return newPrices
+                                      })
+                                    }}
+                                  >
+                                    Cancel
+                                  </Button>
+                                </div>
+                              </div>
+                            ) : (
+                              <Button 
+                                className="w-full"
+                                variant="outline"
+                                onClick={() => setUpdatingListingId(listingId)}
+                              >
+                                Update Price
+                              </Button>
+                            )}
+                          </div>
+                        )}
+
+                        {isActive && !isUpdating && (
                           <button
                             onClick={() => handleCancel(listing)}
                             disabled={cancelListingHandler.isPending}
@@ -548,6 +728,220 @@ export default function AirTrade() {
                     </div>
                   )
                 })}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* My Rights Tab */}
+        {activeTab === "my-rights" && (
+          <div className="space-y-8">
+            {/* Purchased Air Rights Section */}
+            <div>
+              <h2 className="text-2xl font-semibold mb-4 flex items-center gap-2">
+                <span>🏢</span> Purchased Air Rights
+              </h2>
+              {myPurchasedRights.length === 0 ? (
+                <div className="text-center py-12 bg-white rounded-lg shadow">
+                  <p className="text-gray-500 text-lg">You haven't purchased any air rights yet</p>
+                  <button
+                    onClick={() => setActiveTab("browse")}
+                    className="mt-4 bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700"
+                  >
+                    Browse Available Rights
+                  </button>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {myPurchasedRights.map((listing) => {
+                    const coords = coordinatesFromOnChain(
+                      listing.account.location.latitude,
+                      listing.account.location.longitude
+                    )
+                    const purchaseDate = new Date(listing.account.createdAt.toNumber() * 1000)
+
+                    return (
+                      <div key={listing.publicKey.toString()} className="bg-white rounded-lg shadow p-6 border-2 border-blue-200">
+                        <div className="flex justify-between items-start mb-4">
+                          <span className="px-3 py-1 rounded text-sm bg-blue-100 text-blue-800 font-semibold">
+                            OWNED
+                          </span>
+                          <span className="text-xs text-gray-500">
+                            {purchaseDate.toLocaleDateString()}
+                          </span>
+                        </div>
+
+                        <h3 className="font-semibold text-lg mb-2">
+                          {listing.account.location.city}, {listing.account.location.country}
+                        </h3>
+
+                        <div className="space-y-2 text-sm text-gray-600 mb-4">
+                          <p>📍 {coords.latitude.toFixed(4)}, {coords.longitude.toFixed(4)}</p>
+                          <p>📏 Height: {listing.account.heightFrom}m - {listing.account.heightTo}m</p>
+                          <p>📐 Area: {listing.account.areaSqm} m²</p>
+                          <p>💰 Purchased for: {(listing.account.price.toNumber() / LAMPORTS_PER_SOL).toFixed(2)} SOL</p>
+                        </div>
+
+                        <div className="border-t pt-4">
+                          <div className="bg-blue-50 p-3 rounded">
+                            <p className="text-xs text-blue-800 font-medium">
+                              You own the permanent rights to this airspace
+                            </p>
+                          </div>
+                          {listing.account.metadataUri && listing.account.metadataUri !== "https://arweave.net/example" && (
+                            <a
+                              href={listing.account.metadataUri}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="mt-2 text-xs text-blue-600 hover:text-blue-800 block"
+                            >
+                              View Metadata →
+                            </a>
+                          )}
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* Leased Air Rights Section */}
+            <div>
+              <h2 className="text-2xl font-semibold mb-4 flex items-center gap-2">
+                <span>📅</span> Leased Air Rights
+              </h2>
+              {myLeasedRights.length === 0 ? (
+                <div className="text-center py-12 bg-white rounded-lg shadow">
+                  <p className="text-gray-500 text-lg">You haven't leased any air rights yet</p>
+                  <button
+                    onClick={() => setActiveTab("browse")}
+                    className="mt-4 bg-purple-600 text-white px-6 py-2 rounded hover:bg-purple-700"
+                  >
+                    Browse Available Leases
+                  </button>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {myLeasedRights.map((leaseRecord) => {
+                    // Find the corresponding listing
+                    const listing = listingAccounts.data?.find(
+                      (l) => l.account.listingId.eq(leaseRecord.account.listingId)
+                    )
+
+                    if (!listing) return null
+
+                    const coords = coordinatesFromOnChain(
+                      listing.account.location.latitude,
+                      listing.account.location.longitude
+                    )
+
+                    const startDate = new Date(leaseRecord.account.startDate.toNumber() * 1000)
+                    const endDate = new Date(leaseRecord.account.endDate.toNumber() * 1000)
+                    const now = new Date()
+                    const isActive = leaseRecord.account.isActive && now < endDate
+                    const daysRemaining = isActive 
+                      ? Math.ceil((endDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
+                      : 0
+
+                    return (
+                      <div 
+                        key={leaseRecord.publicKey.toString()} 
+                        className={`bg-white rounded-lg shadow p-6 border-2 ${
+                          isActive ? 'border-purple-200' : 'border-gray-200'
+                        }`}
+                      >
+                        <div className="flex justify-between items-start mb-4">
+                          <span className={`px-3 py-1 rounded text-sm font-semibold ${
+                            isActive 
+                              ? 'bg-purple-100 text-purple-800' 
+                              : 'bg-gray-100 text-gray-800'
+                          }`}>
+                            {isActive ? 'ACTIVE LEASE' : 'EXPIRED'}
+                          </span>
+                          {isActive && daysRemaining <= 30 && (
+                            <span className="px-2 py-1 rounded text-xs bg-orange-100 text-orange-800">
+                              {daysRemaining} days left
+                            </span>
+                          )}
+                        </div>
+
+                        <h3 className="font-semibold text-lg mb-2">
+                          {listing.account.location.city}, {listing.account.location.country}
+                        </h3>
+
+                        <div className="space-y-2 text-sm text-gray-600 mb-4">
+                          <p>📍 {coords.latitude.toFixed(4)}, {coords.longitude.toFixed(4)}</p>
+                          <p>📏 Height: {listing.account.heightFrom}m - {listing.account.heightTo}m</p>
+                          <p>📐 Area: {listing.account.areaSqm} m²</p>
+                          <p>💰 Paid: {(leaseRecord.account.amountPaid.toNumber() / LAMPORTS_PER_SOL).toFixed(2)} SOL</p>
+                        </div>
+
+                        <div className="border-t pt-4 space-y-2">
+                          <div className={`p-3 rounded ${isActive ? 'bg-purple-50' : 'bg-gray-50'}`}>
+                            <p className="text-xs font-medium mb-1">
+                              <span className="text-gray-600">Start:</span> {startDate.toLocaleDateString()}
+                            </p>
+                            <p className="text-xs font-medium">
+                              <span className="text-gray-600">End:</span> {endDate.toLocaleDateString()}
+                            </p>
+                          </div>
+
+                          {isActive && (
+                            <div className="bg-green-50 p-2 rounded">
+                              <p className="text-xs text-green-800 font-medium text-center">
+                                ✓ Lease is active
+                              </p>
+                            </div>
+                          )}
+
+                          {!isActive && (
+                            <div className="bg-gray-50 p-2 rounded">
+                              <p className="text-xs text-gray-600 text-center">
+                                This lease has expired
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* Summary Stats */}
+            {(myPurchasedRights.length > 0 || myLeasedRights.length > 0) && (
+              <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg shadow p-6">
+                <h3 className="text-lg font-semibold mb-4">Portfolio Summary</h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="bg-white rounded p-4">
+                    <p className="text-sm text-gray-600 mb-1">Total Owned Rights</p>
+                    <p className="text-2xl font-bold text-blue-600">{myPurchasedRights.length}</p>
+                  </div>
+                  <div className="bg-white rounded p-4">
+                    <p className="text-sm text-gray-600 mb-1">Active Leases</p>
+                    <p className="text-2xl font-bold text-purple-600">
+                      {myLeasedRights.filter(lr => {
+                        const endDate = new Date(lr.account.endDate.toNumber() * 1000)
+                        return lr.account.isActive && new Date() < endDate
+                      }).length}
+                    </p>
+                  </div>
+                  <div className="bg-white rounded p-4">
+                    <p className="text-sm text-gray-600 mb-1">Total Investment</p>
+                    <p className="text-2xl font-bold text-green-600">
+                      {(
+                        [...myPurchasedRights, ...myLeasedRights].reduce((sum, item) => {
+                          const price = 'price' in item.account 
+                            ? item.account.price.toNumber() 
+                            : item.account.amountPaid.toNumber()
+                          return sum + price
+                        }, 0) / LAMPORTS_PER_SOL
+                      ).toFixed(2)} SOL
+                    </p>
+                  </div>
+                </div>
               </div>
             )}
           </div>

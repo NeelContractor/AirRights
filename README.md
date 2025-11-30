@@ -1,5 +1,3 @@
 # Air Trade
 
-- add selector in Search by Location 
-- add update location air price
-- add purchase/ lease rights 
+Purchase, Sell, Lease air rights on Solana.
