@@ -20,7 +20,7 @@ describe('Air Rights Trading', () => {
   const areaSqm = 1000
   const price = new BN(5 * LAMPORTS_PER_SOL)
   const durationDays = 365
-  const metadataUri = "https://arweave.net/abc123"
+  // const metadataUri = "https://arweave.net/abc123"
 
   let registryPda: PublicKey
   let listingPda: PublicKey
@@ -105,7 +105,7 @@ describe('Air Rights Trading', () => {
         durationDays,
         city,
         country,
-        metadataUri
+        // metadataUri
       )
       .accountsStrict({
         listing: listingPda,
@@ -130,7 +130,7 @@ describe('Air Rights Trading', () => {
     expect(listing.price.toString()).toEqual(price.toString())
     expect(listing.status).toEqual({ active: {} }) // TODO
     expect(listing.listingType).toEqual({ sale: {} }) // TODO
-    expect(listing.metadataUri).toEqual(metadataUri)
+    // expect(listing.metadataUri).toEqual(metadataUri)
 
     // Check location index
     const locationIndex = await program.account.locationIndex.fetch(locationIndexPda)
@@ -223,7 +223,7 @@ describe('Air Rights Trading', () => {
         durationDays,
         city,
         country,
-        metadataUri
+        // metadataUri
       )
       .accountsStrict({
         listing: leaseListing,
@@ -318,7 +318,7 @@ describe('Air Rights Trading', () => {
         0,
         city,
         country,
-        metadataUri
+        // metadataUri
       )
       .accountsStrict({
         listing: cancelListing,

@@ -4,7 +4,7 @@
 use anchor_lang::prelude::*;
 use anchor_spl::token::{self, Token, TokenAccount, Transfer};
 
-declare_id!("3zMwSoPMzhJtE4fsNdZ4qg7NfvEmJzswBRC3TzJbjRR8");
+declare_id!("CbKmdPJW2U9g2XWqXzgq46DieLjSdFqmkTqu9rS6xAiD");
 
 #[program]
 pub mod air {
@@ -31,9 +31,9 @@ pub mod air {
         duration_days: u32, // For leases
         city: String,       // City name for easy search
         country: String,    // Country code (e.g., "US", "IN")
-        metadata_uri: String,
+        // metadata_uri: String,
     ) -> Result<()> {
-        require!(metadata_uri.len() <= 200, ErrorCode::MetadataUriTooLong);
+        // require!(metadata_uri.len() <= 200, ErrorCode::MetadataUriTooLong);
         require!(city.len() > 0 && city.len() <= 50, ErrorCode::CityNameTooLong);
         require!(country.len() >= 2 && country.len() <= 3, ErrorCode::CountryCodeInvalid);
         require!(height_to > height_from, ErrorCode::InvalidHeightRange);
@@ -64,7 +64,7 @@ pub mod air {
         listing.status = ListingStatus::Active;
         listing.duration_days = duration_days;
         listing.created_at = Clock::get()?.unix_timestamp;
-        listing.metadata_uri = metadata_uri;
+        // listing.metadata_uri = metadata_uri;
         listing.buyer = None;
 
         registry.total_listings += 1;
@@ -357,8 +357,8 @@ pub struct Listing {
     pub status: ListingStatus,
     pub duration_days: u32,
     pub created_at: i64,
-    #[max_len(200)]
-    pub metadata_uri: String,
+    // #[max_len(200)]
+    // pub metadata_uri: String,
     pub buyer: Option<Pubkey>,
 }
 

@@ -1,5 +1,5 @@
 {
-  "address": "3zMwSoPMzhJtE4fsNdZ4qg7NfvEmJzswBRC3TzJbjRR8",
+  "address": "CbKmdPJW2U9g2XWqXzgq46DieLjSdFqmkTqu9rS6xAiD",
   "metadata": {
     "name": "air",
     "version": "0.1.0",
@@ -210,10 +210,6 @@
         },
         {
           "name": "country",
-          "type": "string"
-        },
-        {
-          "name": "metadata_uri",
           "type": "string"
         }
       ]
@@ -662,10 +658,6 @@
           {
             "name": "created_at",
             "type": "i64"
-          },
-          {
-            "name": "metadata_uri",
-            "type": "string"
           },
           {
             "name": "buyer",

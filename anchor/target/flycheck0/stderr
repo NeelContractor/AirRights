@@ -1,12 +1,102 @@
-   0.371992833s  INFO prepare_target{force=false package_id=air v0.1.0 (/Users/neelcontractor/Documents/air/anchor/programs/air) target="air"}: cargo::core::compiler::fingerprint: stale: changed "/Users/neelcontractor/Documents/air/anchor/programs/air/src/lib.rs"
-   0.372016916s  INFO prepare_target{force=false package_id=air v0.1.0 (/Users/neelcontractor/Documents/air/anchor/programs/air) target="air"}: cargo::core::compiler::fingerprint:           (vs) "/Users/neelcontractor/Documents/air/anchor/target/debug/.fingerprint/air-35e4db61fc41e713/dep-lib-air"
-   0.372019375s  INFO prepare_target{force=false package_id=air v0.1.0 (/Users/neelcontractor/Documents/air/anchor/programs/air) target="air"}: cargo::core::compiler::fingerprint:                FileTime { seconds: 1764486114, nanos: 983384418 } < FileTime { seconds: 1764487518, nanos: 958468721 }
-   0.372499333s  INFO prepare_target{force=false package_id=air v0.1.0 (/Users/neelcontractor/Documents/air/anchor/programs/air) target="air"}: cargo::core::compiler::fingerprint: fingerprint dirty for air v0.1.0 (/Users/neelcontractor/Documents/air/anchor/programs/air)/Check { test: false }/TargetInner { ..: lib_target("air", ["cdylib", "lib"], "/Users/neelcontractor/Documents/air/anchor/programs/air/src/lib.rs", Edition2021) }
-   0.373225416s  INFO prepare_target{force=false package_id=air v0.1.0 (/Users/neelcontractor/Documents/air/anchor/programs/air) target="air"}: cargo::core::compiler::fingerprint:     dirty: FsStatusOutdated(StaleItem(ChangedFile { reference: "/Users/neelcontractor/Documents/air/anchor/target/debug/.fingerprint/air-35e4db61fc41e713/dep-lib-air", reference_mtime: FileTime { seconds: 1764486114, nanos: 983384418 }, stale: "/Users/neelcontractor/Documents/air/anchor/programs/air/src/lib.rs", stale_mtime: FileTime { seconds: 1764487518, nanos: 958468721 } }))
-   0.428417250s  INFO prepare_target{force=false package_id=air v0.1.0 (/Users/neelcontractor/Documents/air/anchor/programs/air) target="air"}: cargo::core::compiler::fingerprint: stale: changed "/Users/neelcontractor/Documents/air/anchor/programs/air/src/lib.rs"
-   0.428422458s  INFO prepare_target{force=false package_id=air v0.1.0 (/Users/neelcontractor/Documents/air/anchor/programs/air) target="air"}: cargo::core::compiler::fingerprint:           (vs) "/Users/neelcontractor/Documents/air/anchor/target/debug/.fingerprint/air-ee6e7ef2e82a2f28/dep-test-lib-air"
-   0.428423875s  INFO prepare_target{force=false package_id=air v0.1.0 (/Users/neelcontractor/Documents/air/anchor/programs/air) target="air"}: cargo::core::compiler::fingerprint:                FileTime { seconds: 1764486114, nanos: 983364126 } < FileTime { seconds: 1764487518, nanos: 958468721 }
-   0.429545291s  INFO prepare_target{force=false package_id=air v0.1.0 (/Users/neelcontractor/Documents/air/anchor/programs/air) target="air"}: cargo::core::compiler::fingerprint: fingerprint dirty for air v0.1.0 (/Users/neelcontractor/Documents/air/anchor/programs/air)/Check { test: true }/TargetInner { ..: lib_target("air", ["cdylib", "lib"], "/Users/neelcontractor/Documents/air/anchor/programs/air/src/lib.rs", Edition2021) }
-   0.429568791s  INFO prepare_target{force=false package_id=air v0.1.0 (/Users/neelcontractor/Documents/air/anchor/programs/air) target="air"}: cargo::core::compiler::fingerprint:     dirty: FsStatusOutdated(StaleItem(ChangedFile { reference: "/Users/neelcontractor/Documents/air/anchor/target/debug/.fingerprint/air-ee6e7ef2e82a2f28/dep-test-lib-air", reference_mtime: FileTime { seconds: 1764486114, nanos: 983364126 }, stale: "/Users/neelcontractor/Documents/air/anchor/programs/air/src/lib.rs", stale_mtime: FileTime { seconds: 1764487518, nanos: 958468721 } }))
+   0.121462542s  INFO prepare_target{force=false package_id=air v0.1.0 (/Users/neelcontractor/Documents/air/anchor/programs/air) target="air"}: cargo::core::compiler::fingerprint: fingerprint error for air v0.1.0 (/Users/neelcontractor/Documents/air/anchor/programs/air)/Check { test: false }/TargetInner { ..: lib_target("air", ["cdylib", "lib"], "/Users/neelcontractor/Documents/air/anchor/programs/air/src/lib.rs", Edition2021) }
+   0.121485167s  INFO prepare_target{force=false package_id=air v0.1.0 (/Users/neelcontractor/Documents/air/anchor/programs/air) target="air"}: cargo::core::compiler::fingerprint:     err: failed to read `/Users/neelcontractor/Documents/air/anchor/target/debug/.fingerprint/air-35e4db61fc41e713/lib-air`
+
+Caused by:
+    No such file or directory (os error 2)
+
+Stack backtrace:
+   0: std::backtrace::Backtrace::create
+   1: cargo_util::paths::read_bytes
+   2: cargo_util::paths::read
+   3: cargo::core::compiler::fingerprint::_compare_old_fingerprint
+   4: cargo::core::compiler::fingerprint::prepare_target
+   5: cargo::core::compiler::compile
+   6: <cargo::core::compiler::build_runner::BuildRunner>::compile
+   7: cargo::ops::cargo_compile::compile_ws
+   8: cargo::ops::cargo_compile::compile_with_exec
+   9: cargo::ops::cargo_compile::compile
+  10: cargo::commands::check::exec
+  11: <cargo::cli::Exec>::exec
+  12: cargo::main
+  13: std::sys::backtrace::__rust_begin_short_backtrace::<fn(), ()>
+  14: std::rt::lang_start::<()>::{closure#0}
+  15: std::rt::lang_start_internal
+  16: _main
+   0.123890833s  INFO prepare_target{force=false package_id=anchor-lang v0.31.1 target="anchor_lang"}: cargo::core::compiler::fingerprint: fingerprint error for anchor-lang v0.31.1/Check { test: false }/TargetInner { ..: lib_target("anchor_lang", ["lib"], "/Users/neelcontractor/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/anchor-lang-0.31.1/src/lib.rs", Edition2021) }
+   0.123899583s  INFO prepare_target{force=false package_id=anchor-lang v0.31.1 target="anchor_lang"}: cargo::core::compiler::fingerprint:     err: failed to read `/Users/neelcontractor/Documents/air/anchor/target/debug/.fingerprint/anchor-lang-fd11645798bde2d3/lib-anchor_lang`
+
+Caused by:
+    No such file or directory (os error 2)
+
+Stack backtrace:
+   0: std::backtrace::Backtrace::create
+   1: cargo_util::paths::read_bytes
+   2: cargo_util::paths::read
+   3: cargo::core::compiler::fingerprint::_compare_old_fingerprint
+   4: cargo::core::compiler::fingerprint::prepare_target
+   5: cargo::core::compiler::compile
+   6: cargo::core::compiler::compile
+   7: <cargo::core::compiler::build_runner::BuildRunner>::compile
+   8: cargo::ops::cargo_compile::compile_ws
+   9: cargo::ops::cargo_compile::compile_with_exec
+  10: cargo::ops::cargo_compile::compile
+  11: cargo::commands::check::exec
+  12: <cargo::cli::Exec>::exec
+  13: cargo::main
+  14: std::sys::backtrace::__rust_begin_short_backtrace::<fn(), ()>
+  15: std::rt::lang_start::<()>::{closure#0}
+  16: std::rt::lang_start_internal
+  17: _main
+   0.131571667s  INFO prepare_target{force=false package_id=anchor-spl v0.31.1 target="anchor_spl"}: cargo::core::compiler::fingerprint: fingerprint error for anchor-spl v0.31.1/Check { test: false }/TargetInner { ..: lib_target("anchor_spl", ["lib"], "/Users/neelcontractor/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/anchor-spl-0.31.1/src/lib.rs", Edition2021) }
+   0.131584417s  INFO prepare_target{force=false package_id=anchor-spl v0.31.1 target="anchor_spl"}: cargo::core::compiler::fingerprint:     err: failed to read `/Users/neelcontractor/Documents/air/anchor/target/debug/.fingerprint/anchor-spl-908697d81ffbaf9e/lib-anchor_spl`
+
+Caused by:
+    No such file or directory (os error 2)
+
+Stack backtrace:
+   0: std::backtrace::Backtrace::create
+   1: cargo_util::paths::read_bytes
+   2: cargo_util::paths::read
+   3: cargo::core::compiler::fingerprint::_compare_old_fingerprint
+   4: cargo::core::compiler::fingerprint::prepare_target
+   5: cargo::core::compiler::compile
+   6: cargo::core::compiler::compile
+   7: <cargo::core::compiler::build_runner::BuildRunner>::compile
+   8: cargo::ops::cargo_compile::compile_ws
+   9: cargo::ops::cargo_compile::compile_with_exec
+  10: cargo::ops::cargo_compile::compile
+  11: cargo::commands::check::exec
+  12: <cargo::cli::Exec>::exec
+  13: cargo::main
+  14: std::sys::backtrace::__rust_begin_short_backtrace::<fn(), ()>
+  15: std::rt::lang_start::<()>::{closure#0}
+  16: std::rt::lang_start_internal
+  17: _main
+   0.134511792s  INFO prepare_target{force=false package_id=air v0.1.0 (/Users/neelcontractor/Documents/air/anchor/programs/air) target="air"}: cargo::core::compiler::fingerprint: fingerprint error for air v0.1.0 (/Users/neelcontractor/Documents/air/anchor/programs/air)/Check { test: true }/TargetInner { ..: lib_target("air", ["cdylib", "lib"], "/Users/neelcontractor/Documents/air/anchor/programs/air/src/lib.rs", Edition2021) }
+   0.134520583s  INFO prepare_target{force=false package_id=air v0.1.0 (/Users/neelcontractor/Documents/air/anchor/programs/air) target="air"}: cargo::core::compiler::fingerprint:     err: failed to read `/Users/neelcontractor/Documents/air/anchor/target/debug/.fingerprint/air-ee6e7ef2e82a2f28/test-lib-air`
+
+Caused by:
+    No such file or directory (os error 2)
+
+Stack backtrace:
+   0: std::backtrace::Backtrace::create
+   1: cargo_util::paths::read_bytes
+   2: cargo_util::paths::read
+   3: cargo::core::compiler::fingerprint::_compare_old_fingerprint
+   4: cargo::core::compiler::fingerprint::prepare_target
+   5: cargo::core::compiler::compile
+   6: <cargo::core::compiler::build_runner::BuildRunner>::compile
+   7: cargo::ops::cargo_compile::compile_ws
+   8: cargo::ops::cargo_compile::compile_with_exec
+   9: cargo::ops::cargo_compile::compile
+  10: cargo::commands::check::exec
+  11: <cargo::cli::Exec>::exec
+  12: cargo::main
+  13: std::sys::backtrace::__rust_begin_short_backtrace::<fn(), ()>
+  14: std::rt::lang_start::<()>::{closure#0}
+  15: std::rt::lang_start_internal
+  16: _main
+    Checking anchor-lang v0.31.1
+    Checking anchor-spl v0.31.1
     Checking air v0.1.0 (/Users/neelcontractor/Documents/air/anchor/programs/air)
-    Finished `dev` profile [unoptimized + debuginfo] target(s) in 1.23s
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 1.17s

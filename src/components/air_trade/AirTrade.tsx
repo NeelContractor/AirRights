@@ -3,7 +3,7 @@
 import { useConnection, useWallet } from "@solana/wallet-adapter-react"
 import { useAirTradeProgram, useListingsByLocation, useRegistryPda, coordinatesToOnChain, coordinatesFromOnChain } from "./air-data-access"
 import { WalletButton } from "../solana/solana-provider"
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect } from "react"
 import { PublicKey, LAMPORTS_PER_SOL } from "@solana/web3.js"
 import BN from "bn.js"
 import { GLOBAL } from "@/utils/global"
@@ -19,6 +19,7 @@ export default function AirTrade() {
   const { connection } = useConnection()
   const {
     program,
+    programId,
     registryAccounts,
     leaseRecordAccounts,
     listingAccounts,
@@ -34,12 +35,13 @@ export default function AirTrade() {
 
   const registryPda = useRegistryPda()
 
-  // Search state
-  const [searchCity, setSearchCity] = useState("Mumbai")
-  const [searchCountry, setSearchCountry] = useState("IN")
+  // Search state - Start with empty to show all
+  const [searchCity, setSearchCity] = useState("")
+  const [searchCountry, setSearchCountry] = useState("")
+  const [showAllListings, setShowAllListings] = useState(true)
   const [activeTab, setActiveTab] = useState<"browse" | "create" | "my-listings" | "my-rights">("browse")
-  const [countryCode, setCountryCode] = useState<string>("IN")
-  const [city, setCity] = useState<string>("Mumbai")
+  const [countryCode, setCountryCode] = useState<string>("")
+  const [city, setCity] = useState<string>("")
   const [createCountryCode, setCreateCountryCode] = useState<string>("IN")
   const [createCity, setCreateCity] = useState<string>("Mumbai")
   
@@ -59,19 +61,26 @@ export default function AirTrade() {
     durationDays: 365,
     city: "Mumbai",
     country: "IN",
-    metadataUri: "https://arweave.net/example",
   })
 
-  // Platform treasury (in production, this should be your actual treasury wallet)
-  const platformTreasury = useMemo(
-    () => new PublicKey("11111111111111111111111111111111"),
-    []
-  )
-
-  const { listings, locationIndex, isLoading: locationLoading } = useListingsByLocation({
+  const { listings: filteredListings, locationIndex, isLoading: locationLoading } = useListingsByLocation({
     city: searchCity,
     country: searchCountry,
   })
+
+  // Determine which listings to show
+  const displayListings = useMemo(() => {
+    if (showAllListings) {
+      // Make sure we're accessing the array correctly
+      const allListings = listingAccounts.data || []
+      console.log('All listings data:', allListings)
+      console.log('Number of listings:', allListings.length)
+      return allListings
+    }
+    const filtered = filteredListings || []
+    console.log('Filtered listings:', filtered)
+    return filtered
+  }, [showAllListings, listingAccounts.data, filteredListings])
 
   const myListings = useMemo(() => {
     if (!publicKey || !listingAccounts.data) return []
@@ -113,11 +122,11 @@ export default function AirTrade() {
       durationDays: formData.durationDays,
       city: formData.city,
       country: formData.country,
-      metadataUri: formData.metadataUri,
     })
 
-    // Reset form
+    // Reset form and go to browse
     setActiveTab("browse")
+    setShowAllListings(true)
   }
 
   const handleUpdatePrice = async (listing: any) => {
@@ -218,6 +227,16 @@ export default function AirTrade() {
     )
   }
 
+  useEffect(() => {
+    console.log('=== DEBUG STATE ===')
+    console.log('listingAccounts.data:', listingAccounts.data)
+    console.log('Number of listings:', listingAccounts.data?.length)
+    console.log('isLoading:', listingAccounts.isLoading)
+    console.log('error:', listingAccounts.error)
+    console.log('showAllListings:', showAllListings)
+    console.log('displayListings:', displayListings)
+  }, [listingAccounts.data, showAllListings, displayListings])
+
   return (
     <div className="min-h-screen bg-gray-50 font-mono">
       {/* Header */}
@@ -309,74 +328,107 @@ export default function AirTrade() {
           <div>
             {/* Search */}
             <div className="bg-white rounded-lg shadow p-6 mb-6">
-              <h2 className="text-xl font-semibold mb-4">Search by Location</h2>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <Select
-                  value={countryCode}
-                  onValueChange={(value) => {
-                    setCountryCode(value)
-                    setSearchCountry(value)
-                    setCity("")
-                    setSearchCity("")
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-semibold">Search by Location</h2>
+                <button
+                  onClick={() => {
+                    setShowAllListings(!showAllListings)
+                    if (!showAllListings) {
+                      // Switching to show all
+                      setCountryCode("")
+                      setCity("")
+                      setSearchCity("")
+                      setSearchCountry("")
+                    }
                   }}
+                  className={`px-4 py-2 rounded-lg font-medium transition ${
+                    showAllListings
+                      ? "bg-blue-600 text-white hover:bg-blue-700"
+                      : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                  }`}
                 >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select country" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {countries.map(({ code, name }) => (
-                      <SelectItem key={code} value={code}>
-                        {name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-
-                <Select
-                  value={city}
-                  onValueChange={(value) => {
-                    setCity(value)
-                    setSearchCity(value)
-                  }}
-                  disabled={!countryCode}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select city" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {cities.map((cityName) => (
-                      <SelectItem key={cityName} value={cityName}>
-                        {cityName}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-
-                <div className="flex items-center">
-                  {locationIndex && (
-                    <span className="text-gray-600">
-                      📊 {locationIndex.listingCount} listing{locationIndex.listingCount !== 1 ? "s" : ""} found
-                    </span>
-                  )}
-                </div>
+                  {showAllListings ? "📋 Showing All Listings" : "🔍 Show All Listings"}
+                </button>
               </div>
+              
+              {!showAllListings && (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <Select
+                    value={countryCode}
+                    onValueChange={(value) => {
+                      setCountryCode(value)
+                      setSearchCountry(value)
+                      setCity("")
+                      setSearchCity("")
+                    }}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select country" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {countries.map(({ code, name }) => (
+                        <SelectItem key={code} value={code}>
+                          {name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+
+                  <Select
+                    value={city}
+                    onValueChange={(value) => {
+                      setCity(value)
+                      setSearchCity(value)
+                    }}
+                    disabled={!countryCode}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select city" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {cities.map((cityName) => (
+                        <SelectItem key={cityName} value={cityName}>
+                          {cityName}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+
+                  <div className="flex items-center">
+                    {locationIndex && searchCity && searchCountry && (
+                      <span className="text-gray-600">
+                        📊 {locationIndex.listingCount} listing{locationIndex.listingCount !== 1 ? "s" : ""} found
+                      </span>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {showAllListings && (
+                <div className="text-center py-4 bg-blue-50 rounded-lg">
+                  <p className="text-gray-700 font-medium">
+                    📊 Displaying all {displayListings.length} listing{displayListings.length !== 1 ? "s" : ""} from all locations
+                  </p>
+                </div>
+              )}
             </div>
 
             {/* Listings Grid */}
-            {locationLoading ? (
+            {(showAllListings ? listingAccounts.isLoading : locationLoading) ? (
               <div className="text-center py-12">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
                 <p className="mt-4 text-gray-600">Loading listings...</p>
               </div>
-            ) : listings && listings.length > 0 ? (
+            ) : displayListings && displayListings.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {listings.map((listing) => {
+                {displayListings.map((listing) => {
                   const coords = coordinatesFromOnChain(
                     listing.account.location.latitude,
                     listing.account.location.longitude
                   )
                   const isActive = Object.keys(listing.account.status)[0] === "active"
                   const isOwner = publicKey?.equals(listing.account.owner)
+                  console.log("displayListings: ", listing);
 
                   return (
                     <div key={listing.publicKey.toString()} className="bg-white rounded-lg shadow hover:shadow-lg transition p-6">
@@ -437,8 +489,24 @@ export default function AirTrade() {
               </div>
             ) : (
               <div className="text-center py-12 bg-white rounded-lg shadow">
-                <p className="text-gray-500 text-lg">No listings found in {searchCity}, {searchCountry}</p>
-                <p className="text-gray-400 mt-2">Try a different location or create your own listing</p>
+                <p className="text-gray-500 text-lg">
+                  {showAllListings 
+                    ? "No listings available yet" 
+                    : `No listings found in ${searchCity}, ${searchCountry}`}
+                </p>
+                <p className="text-gray-400 mt-2">
+                  {showAllListings 
+                    ? "Be the first to create a listing!" 
+                    : "Try a different location or show all listings"}
+                </p>
+                {!showAllListings && (
+                  <button
+                    onClick={() => setShowAllListings(true)}
+                    className="mt-4 bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700"
+                  >
+                    Show All Listings
+                  </button>
+                )}
               </div>
             )}
           </div>
@@ -592,18 +660,6 @@ export default function AirTrade() {
                 </div>
               )}
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Metadata URI</label>
-                <input
-                  type="text"
-                  value={formData.metadataUri}
-                  onChange={(e) => setFormData({ ...formData, metadataUri: e.target.value })}
-                  className="w-full border border-gray-300 rounded px-4 py-2"
-                  placeholder="https://arweave.net/..."
-                  required
-                />
-              </div>
-
               <button
                 onClick={handleCreateListing}
                 disabled={!publicKey || createListingHandler.isPending}
@@ -638,6 +694,7 @@ export default function AirTrade() {
                   const isActive = Object.keys(listing.account.status)[0] === "active"
                   const listingId = listing.publicKey.toString()
                   const isUpdating = updatingListingId === listingId
+                  console.log("myListings: ", listing);
 
                   return (
                     <div key={listingId} className="bg-white rounded-lg shadow p-6">
@@ -759,6 +816,7 @@ export default function AirTrade() {
                       listing.account.location.longitude
                     )
                     const purchaseDate = new Date(listing.account.createdAt.toNumber() * 1000)
+                    console.log("myPurchasedRights: ", myPurchasedRights);
 
                     return (
                       <div key={listing.publicKey.toString()} className="bg-white rounded-lg shadow p-6 border-2 border-blue-200">
@@ -788,7 +846,7 @@ export default function AirTrade() {
                               You own the permanent rights to this airspace
                             </p>
                           </div>
-                          {listing.account.metadataUri && listing.account.metadataUri !== "https://arweave.net/example" && (
+                          {/* {listing.account.metadataUri && listing.account.metadataUri !== "https://arweave.net/example" && (
                             <a
                               href={listing.account.metadataUri}
                               target="_blank"
@@ -797,7 +855,7 @@ export default function AirTrade() {
                             >
                               View Metadata →
                             </a>
-                          )}
+                          )} */}
                         </div>
                       </div>
                     )

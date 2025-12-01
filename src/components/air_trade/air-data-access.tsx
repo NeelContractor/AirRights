@@ -27,7 +27,7 @@ interface CreateListingArgs {
   durationDays: number
   city: string
   country: string
-  metadataUri: string
+  // metadataUri: string
 }
 
 interface UpdatePriceArgs {
@@ -131,7 +131,7 @@ export function useAirTradeProgram() {
       durationDays,
       city,
       country,
-      metadataUri
+      // metadataUri
     }) => {
       const [registryPda] = PublicKey.findProgramAddressSync(
         [Buffer.from("registry")],
@@ -171,7 +171,7 @@ export function useAirTradeProgram() {
           durationDays,
           city,
           country,
-          metadataUri
+          // metadataUri
         )
         .accountsStrict({
           listing: listingPda,

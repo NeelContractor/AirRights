@@ -21,7 +21,7 @@ export function getAirProgramId(cluster: Cluster) {
     case 'devnet':
     case 'testnet':
       // This is the program ID for the Counter program on devnet and testnet.
-      return new PublicKey('3zMwSoPMzhJtE4fsNdZ4qg7NfvEmJzswBRC3TzJbjRR8')
+      return new PublicKey('CbKmdPJW2U9g2XWqXzgq46DieLjSdFqmkTqu9rS6xAiD')
     case 'mainnet-beta':
     default:
       return AIR_PROGRAM_ID

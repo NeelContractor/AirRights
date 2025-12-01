@@ -5,7 +5,7 @@
  * IDL can be found at `target/idl/air.json`.
  */
 export type Air = {
-  "address": "3zMwSoPMzhJtE4fsNdZ4qg7NfvEmJzswBRC3TzJbjRR8",
+  "address": "CbKmdPJW2U9g2XWqXzgq46DieLjSdFqmkTqu9rS6xAiD",
   "metadata": {
     "name": "air",
     "version": "0.1.0",
@@ -216,10 +216,6 @@ export type Air = {
         },
         {
           "name": "country",
-          "type": "string"
-        },
-        {
-          "name": "metadataUri",
           "type": "string"
         }
       ]
@@ -668,10 +664,6 @@ export type Air = {
           {
             "name": "createdAt",
             "type": "i64"
-          },
-          {
-            "name": "metadataUri",
-            "type": "string"
           },
           {
             "name": "buyer",
