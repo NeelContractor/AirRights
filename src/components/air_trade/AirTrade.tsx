@@ -280,7 +280,7 @@ export default function AirTrade() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 font-mono">
+    <div className="min-h-screen bg-gray-50 font-mono text-black">
       {/* Header */}
       <div className="bg-white shadow">
         <div className="max-w-7xl mx-auto px-4 py-6">
@@ -303,13 +303,13 @@ export default function AirTrade() {
         ) : registryAccounts.data && registryAccounts.data.length === 0 ? (
           <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
             <p className="text-yellow-800 mb-2">Registry not initialized</p>
-            <button
+            <Button
               onClick={handleInitializeRegistry}
               disabled={!publicKey || initializeRegistryHandler.isPending}
               className="bg-yellow-600 text-white px-4 py-2 rounded hover:bg-yellow-700 disabled:opacity-50"
             >
               {initializeRegistryHandler.isPending ? "Initializing..." : "Initialize Registry"}
-            </button>
+            </Button>
           </div>
         ) : (
           <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
@@ -372,7 +372,7 @@ export default function AirTrade() {
             <div className="bg-white rounded-lg shadow p-6 mb-6">
               <div className="flex justify-between items-center mb-4">
                 <h2 className="text-xl font-semibold">Search by Location</h2>
-                <button
+                <Button
                   onClick={() => {
                     setShowAllListings(!showAllListings)
                     if (!showAllListings) {
@@ -390,7 +390,7 @@ export default function AirTrade() {
                   }`}
                 >
                   {showAllListings ? "📋 Showing All Listings" : "🔍 Show All Listings"}
-                </button>
+                </Button>
               </div>
               
               {!showAllListings && (
@@ -503,21 +503,21 @@ export default function AirTrade() {
                         ) : isActive ? (
                           <div className="flex gap-2">
                             {Object.keys(listing.account.listingType)[0] === "sale" ? (
-                              <button
+                              <Button
                                 onClick={() => handlePurchase(listing)}
                                 disabled={purchaseAirRightsHandler.isPending}
                                 className="flex-1 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:opacity-50"
                               >
                                 Purchase
-                              </button>
+                              </Button>
                             ) : (
-                              <button
+                              <Button
                                 onClick={() => handleLease(listing)}
                                 disabled={leaseAirRightsHandler.isPending}
                                 className="flex-1 bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700 disabled:opacity-50"
                               >
                                 Lease
-                              </button>
+                              </Button>
                             )}
                           </div>
                         ) : (
@@ -541,12 +541,12 @@ export default function AirTrade() {
                     : "Try a different location or show all listings"}
                 </p>
                 {!showAllListings && (
-                  <button
+                  <Button
                     onClick={() => setShowAllListings(true)}
                     className="mt-4 bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700"
                   >
                     Show All Listings
-                  </button>
+                  </Button>
                 )}
               </div>
             )}
@@ -607,8 +607,8 @@ export default function AirTrade() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Latitude</label>
-                  <input
+                  <Label className="block text-sm font-medium text-gray-700 mb-1">Latitude</Label>
+                  <Input
                     type="number"
                     step="0.000001"
                     value={formData.latitude}
@@ -618,8 +618,8 @@ export default function AirTrade() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Longitude</label>
-                  <input
+                  <Label className="block text-sm font-medium text-gray-700 mb-1">Longitude</Label>
+                  <Input
                     type="number"
                     step="0.000001"
                     value={formData.longitude}
@@ -632,8 +632,8 @@ export default function AirTrade() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Height From (m)</label>
-                  <input
+                  <Label className="block text-sm font-medium text-gray-700 mb-1">Height From (m)</Label>
+                  <Input
                     type="number"
                     value={formData.heightFrom}
                     onChange={(e) => setFormData({ ...formData, heightFrom: parseInt(e.target.value) })}
@@ -642,8 +642,8 @@ export default function AirTrade() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Height To (m)</label>
-                  <input
+                  <Label className="block text-sm font-medium text-gray-700 mb-1">Height To (m)</Label>
+                  <Input
                     type="number"
                     value={formData.heightTo}
                     onChange={(e) => setFormData({ ...formData, heightTo: parseInt(e.target.value) })}
@@ -654,8 +654,8 @@ export default function AirTrade() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Area (m²)</label>
-                <input
+                <Label className="block text-sm font-medium text-gray-700 mb-1">Area (m²)</Label>
+                <Input
                   type="number"
                   value={formData.areaSqm}
                   onChange={(e) => setFormData({ ...formData, areaSqm: parseInt(e.target.value) })}
@@ -665,8 +665,8 @@ export default function AirTrade() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Price (SOL)</label>
-                <input
+                <Label className="block text-sm font-medium text-gray-700 mb-1">Price (SOL)</Label>
+                <Input
                   type="number"
                   step="0.01"
                   value={formData.price}
@@ -677,21 +677,25 @@ export default function AirTrade() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Listing Type</label>
-                <select
+                <Label className="block text-sm font-medium text-gray-700 mb-1">Listing Type</Label>
+                <Select
                   value={formData.listingType}
-                  onChange={(e) => setFormData({ ...formData, listingType: e.target.value as "sale" | "lease" })}
-                  className="w-full border border-gray-300 rounded px-4 py-2"
+                  onValueChange={(value) => setFormData({ ...formData, listingType: value as "sale" | "lease" })}
                 >
-                  <option value="sale">Sale</option>
-                  <option value="lease">Lease</option>
-                </select>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select listing type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="sale">Sale</SelectItem>
+                    <SelectItem value="lease">Lease</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
               {formData.listingType === "lease" && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Duration (days)</label>
-                  <input
+                  <Label className="block text-sm font-medium text-gray-700 mb-1">Duration (days)</Label>
+                  <Input
                     type="number"
                     value={formData.durationDays}
                     onChange={(e) => setFormData({ ...formData, durationDays: parseInt(e.target.value) })}
@@ -701,13 +705,13 @@ export default function AirTrade() {
                 </div>
               )}
 
-              <button
+              <Button
                 onClick={handleCreateListing}
                 disabled={!publicKey || createListingHandler.isPending}
                 className="w-full bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 disabled:opacity-50 font-semibold"
               >
                 {createListingHandler.isPending ? "Creating..." : "Create Listing"}
-              </button>
+              </Button>
             </div>
           </div>
         )}
@@ -718,12 +722,12 @@ export default function AirTrade() {
             {myListings.length === 0 ? (
               <div className="text-center py-12 bg-white rounded-lg shadow">
                 <p className="text-gray-500 text-lg">You don&apos;t have any listings yet</p>
-                <button
+                <Button
                   onClick={() => setActiveTab("create")}
                   className="mt-4 bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700"
                 >
                   Create Your First Listing
-                </button>
+                </Button>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -813,13 +817,13 @@ export default function AirTrade() {
                         )}
 
                         {isActive && !isUpdating && (
-                          <button
+                          <Button
                             onClick={() => handleCancel(listing)}
                             disabled={cancelListingHandler.isPending}
                             className="w-full bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 disabled:opacity-50"
                           >
                             {cancelListingHandler.isPending ? "Cancelling..." : "Cancel Listing"}
-                          </button>
+                          </Button>
                         )}
                       </div>
                     </div>
@@ -841,12 +845,12 @@ export default function AirTrade() {
               {myPurchasedRights.length === 0 ? (
                 <div className="text-center py-12 bg-white rounded-lg shadow">
                   <p className="text-gray-500 text-lg">You haven&apos;t purchased any air rights yet</p>
-                  <button
+                  <Button
                     onClick={() => setActiveTab("browse")}
                     className="mt-4 bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700"
                   >
                     Browse Available Rights
-                  </button>
+                  </Button>
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -911,12 +915,12 @@ export default function AirTrade() {
               {myLeasedRights.length === 0 ? (
                 <div className="text-center py-12 bg-white rounded-lg shadow">
                   <p className="text-gray-500 text-lg">You haven&apos;t leased any air rights yet</p>
-                  <button
+                  <Button
                     onClick={() => setActiveTab("browse")}
                     className="mt-4 bg-purple-600 text-white px-6 py-2 rounded hover:bg-purple-700"
                   >
                     Browse Available Leases
-                  </button>
+                  </Button>
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
