@@ -1,9 +1,9 @@
 "use client"
 
-import { useConnection, useWallet } from "@solana/wallet-adapter-react"
-import { useAirTradeProgram, useListingsByLocation, useRegistryPda, coordinatesToOnChain, coordinatesFromOnChain } from "./air-data-access"
+import { useWallet } from "@solana/wallet-adapter-react"
+import { useAirTradeProgram, useListingsByLocation, coordinatesToOnChain, coordinatesFromOnChain } from "./air-data-access"
 import { WalletButton } from "../solana/solana-provider"
-import { useState, useMemo, useEffect } from "react"
+import { useState, useMemo } from "react"
 import { PublicKey, LAMPORTS_PER_SOL } from "@solana/web3.js"
 import BN from "bn.js"
 import { GLOBAL } from "@/utils/global"
@@ -14,17 +14,69 @@ import { Label } from "../ui/label"
 
 const ADMIN_PUBKEY = new PublicKey("FAbPnoAVhTmpxk71RzoC7L31nJa62qPq14rZTAE7Z3cw");
 
+export interface RegistryStruct {
+  authority: PublicKey,
+  totalListings: BN,
+  platformFeeBps: number, // Basis points (100 = 1%)
+}
+
+export interface ListingStruct {
+  owner: PublicKey,
+  listingId: BN,
+  location: LocationStruct,
+  heightFrom: number,
+  heightTo: number,
+  areaSqm: number,
+  price: BN,
+  listingType: { sale: Record<string, never> } | { lease: Record<string, never> },
+  status: ListingStatus,
+  durationDays: number,
+  createdAt: BN,
+  buyer: PublicKey | null,
+}
+
+export interface LocationStruct {
+  latitude: number,      // latitude * 1_000_000
+  longitude: number,     // longitude * 1_000_000
+  gridX: number,        // For efficient spatial search (auto-calculated)
+  gridY: number,        // For efficient spatial search (auto-calculated)
+  city: string,       // "New York", "Mumbai", "Tokyo"
+  country: string,    // ISO country code: "US", "IN", "JP"
+}
+
+export interface LocationIndexStruct {
+  city: string,
+  country: string,
+  listingCount: number,
+}
+
+export interface LeaseRecordStruct {
+  listingId: BN,
+  lessor: PublicKey,
+  lessee: PublicKey,
+  startDate: BN,
+  endDate: BN,
+  amountPaid: BN,
+  isActive: boolean,
+}
+
+export type ListingType = 
+  { sale: Record<string, never> } |
+  { lease: Record<string, never> };
+
+export type ListingStatus =
+  { active: Record<string, never> } |
+  { sold: Record<string, never> } |
+  { leased: Record<string, never> } |
+  { cancelled: Record<string, never> };
+
+
 export default function AirTrade() {
   const { publicKey } = useWallet()
-  const { connection } = useConnection()
   const {
-    program,
-    programId,
     registryAccounts,
     leaseRecordAccounts,
     listingAccounts,
-    locationIndexAccounts,
-    getProgramAccount,
     initializeRegistryHandler,
     createListingHandler,
     updatePriceHandler,
@@ -33,7 +85,7 @@ export default function AirTrade() {
     cancelListingHandler,
   } = useAirTradeProgram()
 
-  const registryPda = useRegistryPda()
+  // const registryPda = useRegistryPda()
 
   // Search state - Start with empty to show all
   const [searchCity, setSearchCity] = useState("")
@@ -73,12 +125,12 @@ export default function AirTrade() {
     if (showAllListings) {
       // Make sure we're accessing the array correctly
       const allListings = listingAccounts.data || []
-      console.log('All listings data:', allListings)
-      console.log('Number of listings:', allListings.length)
+      // console.log('All listings data:', allListings)
+      // console.log('Number of listings:', allListings.length)
       return allListings
     }
     const filtered = filteredListings || []
-    console.log('Filtered listings:', filtered)
+    // console.log('Filtered listings:', filtered)
     return filtered
   }, [showAllListings, listingAccounts.data, filteredListings])
 
@@ -129,7 +181,7 @@ export default function AirTrade() {
     setShowAllListings(true)
   }
 
-  const handleUpdatePrice = async (listing: any) => {
+  const handleUpdatePrice = async (listing: { account: ListingStruct, publicKey: PublicKey }) => {
     if (!publicKey) return
     
     const listingId = listing.publicKey.toString()
@@ -157,7 +209,7 @@ export default function AirTrade() {
     })
   }
 
-  const handlePurchase = async (listing: any) => {
+  const handlePurchase = async (listing: { account: ListingStruct, publicKey: PublicKey }) => {
     if (!publicKey) return
 
     await purchaseAirRightsHandler.mutateAsync({
@@ -168,7 +220,7 @@ export default function AirTrade() {
     })
   }
 
-  const handleLease = async (listing: any) => {
+  const handleLease = async (listing: { account: ListingStruct, publicKey: PublicKey }) => {
     if (!publicKey) return
 
     await leaseAirRightsHandler.mutateAsync({
@@ -180,7 +232,7 @@ export default function AirTrade() {
     })
   }
 
-  const handleCancel = async (listing: any) => {
+  const handleCancel = async (listing: { account: ListingStruct, publicKey: PublicKey }) => {
     if (!publicKey) return
 
     await cancelListingHandler.mutateAsync({
@@ -203,7 +255,7 @@ export default function AirTrade() {
   const cities = countryCode ? GLOBAL[countryCode]?.cities ?? [] : []
   const createCities = createCountryCode ? GLOBAL[createCountryCode]?.cities ?? [] : []
 
-  const getStatusBadge = (status: any) => {
+  const getStatusBadge = (status: ListingStatus) => {
     const statusKey = Object.keys(status)[0]
     const colors = {
       active: "bg-green-100 text-green-800",
@@ -218,7 +270,7 @@ export default function AirTrade() {
     )
   }
 
-  const getTypeBadge = (type: any) => {
+  const getTypeBadge = (type: ListingType) => {
     const typeKey = Object.keys(type)[0]
     return (
       <span className={`px-2 py-1 rounded text-xs ${typeKey === "sale" ? "bg-orange-100 text-orange-800" : "bg-indigo-100 text-indigo-800"}`}>
@@ -226,16 +278,6 @@ export default function AirTrade() {
       </span>
     )
   }
-
-  useEffect(() => {
-    console.log('=== DEBUG STATE ===')
-    console.log('listingAccounts.data:', listingAccounts.data)
-    console.log('Number of listings:', listingAccounts.data?.length)
-    console.log('isLoading:', listingAccounts.isLoading)
-    console.log('error:', listingAccounts.error)
-    console.log('showAllListings:', showAllListings)
-    console.log('displayListings:', displayListings)
-  }, [listingAccounts.data, showAllListings, displayListings])
 
   return (
     <div className="min-h-screen bg-gray-50 font-mono">
@@ -428,7 +470,6 @@ export default function AirTrade() {
                   )
                   const isActive = Object.keys(listing.account.status)[0] === "active"
                   const isOwner = publicKey?.equals(listing.account.owner)
-                  console.log("displayListings: ", listing);
 
                   return (
                     <div key={listing.publicKey.toString()} className="bg-white rounded-lg shadow hover:shadow-lg transition p-6">
@@ -676,7 +717,7 @@ export default function AirTrade() {
           <div>
             {myListings.length === 0 ? (
               <div className="text-center py-12 bg-white rounded-lg shadow">
-                <p className="text-gray-500 text-lg">You don't have any listings yet</p>
+                <p className="text-gray-500 text-lg">You don&apos;t have any listings yet</p>
                 <button
                   onClick={() => setActiveTab("create")}
                   className="mt-4 bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700"
@@ -694,7 +735,6 @@ export default function AirTrade() {
                   const isActive = Object.keys(listing.account.status)[0] === "active"
                   const listingId = listing.publicKey.toString()
                   const isUpdating = updatingListingId === listingId
-                  console.log("myListings: ", listing);
 
                   return (
                     <div key={listingId} className="bg-white rounded-lg shadow p-6">
@@ -800,7 +840,7 @@ export default function AirTrade() {
               </h2>
               {myPurchasedRights.length === 0 ? (
                 <div className="text-center py-12 bg-white rounded-lg shadow">
-                  <p className="text-gray-500 text-lg">You haven't purchased any air rights yet</p>
+                  <p className="text-gray-500 text-lg">You haven&apos;t purchased any air rights yet</p>
                   <button
                     onClick={() => setActiveTab("browse")}
                     className="mt-4 bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700"
@@ -816,7 +856,6 @@ export default function AirTrade() {
                       listing.account.location.longitude
                     )
                     const purchaseDate = new Date(listing.account.createdAt.toNumber() * 1000)
-                    console.log("myPurchasedRights: ", myPurchasedRights);
 
                     return (
                       <div key={listing.publicKey.toString()} className="bg-white rounded-lg shadow p-6 border-2 border-blue-200">
@@ -871,7 +910,7 @@ export default function AirTrade() {
               </h2>
               {myLeasedRights.length === 0 ? (
                 <div className="text-center py-12 bg-white rounded-lg shadow">
-                  <p className="text-gray-500 text-lg">You haven't leased any air rights yet</p>
+                  <p className="text-gray-500 text-lg">You haven&apos;t leased any air rights yet</p>
                   <button
                     onClick={() => setActiveTab("browse")}
                     className="mt-4 bg-purple-600 text-white px-6 py-2 rounded hover:bg-purple-700"
