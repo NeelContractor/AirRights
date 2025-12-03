@@ -72,6 +72,11 @@
                 "kind": "account",
                 "path": "listing.location.country",
                 "account": "Listing"
+              },
+              {
+                "kind": "account",
+                "path": "listing.listing_id",
+                "account": "Listing"
               }
             ]
           }
@@ -85,9 +90,6 @@
     },
     {
       "name": "create_listing",
-      "docs": [
-        "List air rights for sale or lease"
-      ],
       "discriminator": [
         18,
         168,
@@ -126,7 +128,24 @@
         },
         {
           "name": "registry",
-          "writable": true
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  114,
+                  101,
+                  103,
+                  105,
+                  115,
+                  116,
+                  114,
+                  121
+                ]
+              }
+            ]
+          }
         },
         {
           "name": "location_index",
@@ -153,6 +172,11 @@
               {
                 "kind": "arg",
                 "path": "country"
+              },
+              {
+                "kind": "account",
+                "path": "registry.total_listings",
+                "account": "Registry"
               }
             ]
           }
@@ -299,7 +323,24 @@
           }
         },
         {
-          "name": "registry"
+          "name": "registry",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  114,
+                  101,
+                  103,
+                  105,
+                  115,
+                  116,
+                  114,
+                  121
+                ]
+              }
+            ]
+          }
         },
         {
           "name": "lease_record",
@@ -387,7 +428,24 @@
           }
         },
         {
-          "name": "registry"
+          "name": "registry",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  114,
+                  101,
+                  103,
+                  105,
+                  115,
+                  116,
+                  114,
+                  121
+                ]
+              }
+            ]
+          }
         },
         {
           "name": "buyer",

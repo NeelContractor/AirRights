@@ -238,6 +238,7 @@ export default function AirTrade() {
     await cancelListingHandler.mutateAsync({
       listingPubkey: listing.publicKey,
       ownerPubkey: publicKey,
+      listingId: listing.account.listingId,
       city: listing.account.location.city,
       country: listing.account.location.country,
     })
@@ -280,14 +281,27 @@ export default function AirTrade() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 font-mono text-black">
+    <div className="min-h-screen bg-blue-50 font-mono text-black">
       {/* Header */}
-      <div className="bg-white shadow">
-        <div className="max-w-7xl mx-auto px-4 py-6">
+      <div className="relative bg-white shadow overflow-hidden h-32">
+        {/* Background Image - centered and cropped */}
+        <div 
+          className="absolute inset-0 bg-[url(/image.png)] bg-cover bg-center scale-150"
+          aria-hidden="true"
+        />
+        
+        {/* Overlay for text readability */}
+        <div 
+          className="absolute inset-0 bg-white/70"
+          aria-hidden="true"
+        />
+        
+        {/* Content */}
+        <div className="relative z-10 max-w-7xl mx-auto px-4 py-6">
           <div className="flex justify-between items-center">
             <div>
               <h1 className="text-3xl font-bold text-gray-900">Air Rights Trading</h1>
-              <p className="text-gray-600 mt-1">Monetize and trade airspace rights on Solana</p>
+              <p className="text-gray-700 mt-1">Monetize and trade airspace rights on Solana</p>
             </div>
             <WalletButton />
           </div>

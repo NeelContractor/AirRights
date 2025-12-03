@@ -27,7 +27,6 @@ interface CreateListingArgs {
   durationDays: number
   city: string
   country: string
-  // metadataUri: string
 }
 
 interface UpdatePriceArgs {
@@ -54,6 +53,7 @@ interface LeaseAirRightsArgs {
 interface CancelListingArgs {
   listingPubkey: PublicKey
   ownerPubkey: PublicKey
+  listingId: BN
   city: string
   country: string
 }
@@ -131,7 +131,6 @@ export function useAirTradeProgram() {
       durationDays,
       city,
       country,
-      // metadataUri
     }) => {
       const [registryPda] = PublicKey.findProgramAddressSync(
         [Buffer.from("registry")],
@@ -152,7 +151,8 @@ export function useAirTradeProgram() {
         [
           Buffer.from("location"),
           Buffer.from(city),
-          Buffer.from(country)
+          Buffer.from(country),
+          registry.totalListings.toArrayLike(Buffer, 'le', 8)
         ],
         program.programId
       )
@@ -294,12 +294,13 @@ export function useAirTradeProgram() {
 
   const cancelListingHandler = useMutation<string, Error, CancelListingArgs>({
     mutationKey: ['listing', 'cancel', { cluster }],
-    mutationFn: async ({ listingPubkey, ownerPubkey, city, country }) => {
+    mutationFn: async ({ listingPubkey, ownerPubkey, listingId, city, country }) => {
       const [locationIndexPda] = PublicKey.findProgramAddressSync(
         [
           Buffer.from("location"),
           Buffer.from(city),
-          Buffer.from(country)
+          Buffer.from(country),
+          listingId.toArrayLike(Buffer, 'le', 8)
         ],
         program.programId
       )

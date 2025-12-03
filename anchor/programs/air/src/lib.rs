@@ -2,7 +2,6 @@
 #![allow(unexpected_cfgs)]
 
 use anchor_lang::prelude::*;
-use anchor_spl::token::{self, Token, TokenAccount, Transfer};
 
 declare_id!("CbKmdPJW2U9g2XWqXzgq46DieLjSdFqmkTqu9rS6xAiD");
 
@@ -18,7 +17,6 @@ pub mod air {
         Ok(())
     }
 
-    /// List air rights for sale or lease
     pub fn create_listing(
         ctx: Context<CreateListing>,
         latitude: i32,      // Stored as latitude * 1_000_000 for precision
@@ -31,9 +29,7 @@ pub mod air {
         duration_days: u32, // For leases
         city: String,       // City name for easy search
         country: String,    // Country code (e.g., "US", "IN")
-        // metadata_uri: String,
     ) -> Result<()> {
-        // require!(metadata_uri.len() <= 200, ErrorCode::MetadataUriTooLong);
         require!(city.len() > 0 && city.len() <= 50, ErrorCode::CityNameTooLong);
         require!(country.len() >= 2 && country.len() <= 3, ErrorCode::CountryCodeInvalid);
         require!(height_to > height_from, ErrorCode::InvalidHeightRange);
@@ -42,7 +38,6 @@ pub mod air {
         let listing = &mut ctx.accounts.listing;
         let registry = &mut ctx.accounts.registry;
 
-        // Calculate grid coordinates for spatial indexing (0.01 degree precision)
         let grid_x = ((longitude + 180_000_000) / 10_000) as u32;
         let grid_y = ((latitude + 90_000_000) / 10_000) as u32;
 
@@ -64,17 +59,16 @@ pub mod air {
         listing.status = ListingStatus::Active;
         listing.duration_days = duration_days;
         listing.created_at = Clock::get()?.unix_timestamp;
-        // listing.metadata_uri = metadata_uri;
         listing.buyer = None;
-
-        registry.total_listings += 1;
 
         let location_index = &mut ctx.accounts.location_index;
         if location_index.listing_count == 0 {
-            location_index.city = city.clone();
-            location_index.country = country.clone();
+            location_index.city = city;
+            location_index.country = country;
         }
         location_index.listing_count += 1;
+
+        registry.total_listings += 1;
 
         Ok(())
     }
@@ -232,7 +226,11 @@ pub struct CreateListing<'info> {
         bump
     )]
     pub listing: Account<'info, Listing>,
-    #[account(mut)]
+    #[account(
+        mut,
+        seeds = [b"registry"],
+        bump
+    )]
     pub registry: Account<'info, Registry>,
     #[account(
         init_if_needed,
@@ -241,7 +239,8 @@ pub struct CreateListing<'info> {
         seeds = [
             b"location",
             city.as_bytes(),
-            country.as_bytes()
+            country.as_bytes(),
+            registry.total_listings.to_le_bytes().as_ref()
         ],
         bump
     )]
@@ -259,6 +258,10 @@ pub struct PurchaseAirRights<'info> {
         bump
     )]
     pub listing: Account<'info, Listing>,
+    #[account(
+        seeds = [b"registry"],
+        bump
+    )]
     pub registry: Account<'info, Registry>,
     #[account(mut)]
     pub buyer: Signer<'info>,
@@ -279,6 +282,10 @@ pub struct LeaseAirRights<'info> {
         bump
     )]
     pub listing: Account<'info, Listing>,
+    #[account(
+        seeds = [b"registry"],
+        bump
+    )]
     pub registry: Account<'info, Registry>,
     #[account(
         init,
@@ -311,12 +318,19 @@ pub struct CancelListing<'info> {
         bump
     )]
     pub listing: Account<'info, Listing>,
+    // #[account(
+    //     mut,
+    //     seeds = [b"registry"],
+    //     bump    
+    // )]
+    // pub registry: Account<'info, Registry>,
     #[account(
         mut,
         seeds = [
             b"location",
             listing.location.city.as_bytes(),
-            listing.location.country.as_bytes()
+            listing.location.country.as_bytes(),
+            listing.listing_id.to_le_bytes().as_ref()
         ],
         bump
     )]
@@ -357,8 +371,6 @@ pub struct Listing {
     pub status: ListingStatus,
     pub duration_days: u32,
     pub created_at: i64,
-    // #[max_len(200)]
-    // pub metadata_uri: String,
     pub buyer: Option<Pubkey>,
 }
 

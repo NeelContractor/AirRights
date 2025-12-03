@@ -78,6 +78,11 @@ export type Air = {
                 "kind": "account",
                 "path": "listing.location.country",
                 "account": "listing"
+              },
+              {
+                "kind": "account",
+                "path": "listing.listing_id",
+                "account": "listing"
               }
             ]
           }
@@ -91,9 +96,6 @@ export type Air = {
     },
     {
       "name": "createListing",
-      "docs": [
-        "List air rights for sale or lease"
-      ],
       "discriminator": [
         18,
         168,
@@ -132,7 +134,24 @@ export type Air = {
         },
         {
           "name": "registry",
-          "writable": true
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  114,
+                  101,
+                  103,
+                  105,
+                  115,
+                  116,
+                  114,
+                  121
+                ]
+              }
+            ]
+          }
         },
         {
           "name": "locationIndex",
@@ -159,6 +178,11 @@ export type Air = {
               {
                 "kind": "arg",
                 "path": "country"
+              },
+              {
+                "kind": "account",
+                "path": "registry.total_listings",
+                "account": "registry"
               }
             ]
           }
@@ -305,7 +329,24 @@ export type Air = {
           }
         },
         {
-          "name": "registry"
+          "name": "registry",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  114,
+                  101,
+                  103,
+                  105,
+                  115,
+                  116,
+                  114,
+                  121
+                ]
+              }
+            ]
+          }
         },
         {
           "name": "leaseRecord",
@@ -393,7 +434,24 @@ export type Air = {
           }
         },
         {
-          "name": "registry"
+          "name": "registry",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  114,
+                  101,
+                  103,
+                  105,
+                  115,
+                  116,
+                  114,
+                  121
+                ]
+              }
+            ]
+          }
         },
         {
           "name": "buyer",
